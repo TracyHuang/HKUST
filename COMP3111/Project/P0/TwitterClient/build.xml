@@ -1,0 +1,333 @@
+<project default="all">
+    <!-- =================================================================== -->
+    <!--                               Definitions                           -->
+    <!-- =================================================================== -->    
+    <property name="base-dir" location="." />
+    <property name="lib-dir" location="${base-dir}/lib" />
+    <property name="lib-test-dir" location="${base-dir}/lib-test" />
+    <property name="src-dir" location="${base-dir}/src" />
+    <property name="test-dir" location="${base-dir}/test" />
+	<!-- <property name="out-dir" location="${base-dir}/classes" /> -->
+	<property name="out-dir" location="${base-dir}/bin" />
+	
+    <property name="report-dir" location="${base-dir}/report" />
+    <property name="junit-dir" location="${report-dir}/junit" />
+    <property name="junit-xml-dir" location="${junit-dir}/xml" />
+    <property name="junit-html-dir" location="${junit-dir}/html" />
+    <property name="cobertura-dir" location="${report-dir}/cobertura" />
+    <property name="cobertura-xml-dir" location="${cobertura-dir}/xml" />
+    <property name="cobertura-html-dir" location="${cobertura-dir}/html" />
+    <property name="instrumented-dir" location="${report-dir}/instrumented" />
+    <property name="instrument-file" location="${instrumented-dir}/cobertura.ser" />
+    
+    <property name="target-jar" value="hk.ust.cse.TwitterClient.jar" />
+    
+    <condition property="swt.library" value="swt-4.2.1-win32-win32-x86.jar">
+		<and>
+		    <os arch="x86" />
+			<os family="windows" />
+		</and>
+    </condition>
+	<condition property="swt.library" value="swt-4.2.1-win32-win32-x86_64.jar">
+		<and>
+		    <os arch="x86_64" />
+			<os family="windows" />
+		</and>
+    </condition>
+	<condition property="swt.library" value="swt-4.2.1-win32-win32-x86_64.jar">
+		<and>
+		    <os arch="amd64" />
+			<os family="windows" />
+		</and>
+    </condition>
+	<condition property="swt.library" value="swt-4.2.1-gtk-linux-x86.jar">
+		<and>
+		    <os arch="x86" />
+			<os family="unix" />
+		</and>
+    </condition>
+	<condition property="swt.library" value="swt-4.2.1-gtk-linux-x86_64.jar">
+		<and>
+		    <os arch="x86_64" />
+			<os family="unix" />
+		</and>
+    </condition>
+	<condition property="swt.library" value="swt-4.2.1-gtk-linux-x86_64.jar">
+		<and>
+		    <os arch="amd64" />
+			<os family="unix" />
+		</and>
+    </condition>
+	<condition property="swt.library" value="swt-4.2.1-cocoa-macosx.jar">
+		<and>
+		    <os arch="x86" />
+			<os family="mac" />
+		</and>
+    </condition>
+	<condition property="swt.library" value="swt-4.2.1-cocoa-macosx-x86_64.jar">
+		<and>
+		    <os arch="x86_64" />
+			<os family="mac" />
+		</and>
+    </condition>
+	<condition property="swt.library" value="swt-4.2.1-cocoa-macosx-x86_64.jar">
+		<and>
+		    <os arch="amd64" />
+			<os family="mac" />
+		</and>
+    </condition>
+	
+    <condition property="XstartOnFirstThread" value="-XstartOnFirstThread">
+        <os family="mac" />
+    </condition>
+    <condition property="XstartOnFirstThread" value="">
+        <not><os family="mac" /></not>
+    </condition>
+
+    <path id="classpath.all">
+        <pathelement location="${out-dir}" />
+        <fileset id="alljars" dir="${lib-dir}">
+            <include name="**/*.jar" />
+            <exclude name="**/swt-*.jar" />
+        </fileset>
+		<fileset id="swtJar" dir="${lib-dir}">
+            <include name="${swt.library}" />
+        </fileset>
+		<fileset id="alljars2" dir="${lib-test-dir}">
+            <include name="**/*.jar" />
+        </fileset>
+    </path>
+    
+    <!-- =================================================================== -->
+    <!--                            Build and Run Program                    -->
+    <!-- =================================================================== -->
+    
+    <target name="clean">
+	    <delete quiet="true" includeEmptyDirs="true">
+			<fileset dir="${out-dir}">
+	        </fileset>
+	    </delete>
+    </target>
+	
+    <target name="init" description="initialize the project env." depends="clean" >
+        <!-- create the output folder -->  
+        <mkdir dir="${out-dir}" />
+        <copy todir="${out-dir}">
+            <fileset dir="${src-dir}" includes="**/*.png" />
+            <fileset dir="${src-dir}" includes="**/*.properties" />
+        </copy>
+    </target>
+
+    <target name="compile" depends="init">
+        <javac srcdir="${src-dir}" destdir="${out-dir}" debug="true">
+            <classpath refid="classpath.all" />
+        </javac>
+    </target>
+   
+    <target name="jar" depends="compile">
+        <jar destfile="${base-dir}/${target-jar}" basedir="${out-dir}" excludes="**/test/hk/ust/cse/**/*.class" />
+    </target>
+
+    <target name="run-jar" depends="jar">
+		<java classname="hk.ust.cse.TwitterClient.TwitterClient" fork="true" maxmemory="512m">
+			<jvmarg line="${XstartOnFirstThread}" />
+            <classpath refid="classpath.all" />
+			<classpath location="${base-dir}/${target-jar}" />
+        </java>
+    </target>
+	
+    <!-- include the cobertura building jars -->  
+    <path id="cobertura.classpath">
+        <path refid="classpath.all" />
+    </path>    
+    
+    <!-- define the cobertura property file -->  
+    <taskdef classpathref="cobertura.classpath" resource="tasks.properties"/>
+
+    <!-- =================================================================== -->
+    <!--                            Unit Test Targets                        -->
+    <!-- =================================================================== -->
+    
+    <!-- - - - - - - - - - - - - - - - - - 
+      target: init
+      initialize the build env             
+    - - - - - - - - - - - - - - - - - -->    
+    <target name="junit-init" description="initialize the test env.">
+        <!-- create the output folder -->  
+        <mkdir dir="${junit-dir}" />
+        <mkdir dir="${junit-xml-dir}" />
+        <mkdir dir="${junit-html-dir}" />
+    </target>
+
+    <!-- - - - - - - - - - - - - - - - - - 
+      target: compile-test
+      compile the test cases                 
+    - - - - - - - - - - - - - - - - - -->     
+    <target name="junit-compile-test">
+        <javac srcdir="${test-dir}" destdir="${out-dir}" debug="true" fork="true" memoryMaximumSize="512m" > 
+			<classpath location="${out-dir}" />
+            <classpath refid="classpath.all" />
+			<include name="**/*Test*.java"/>
+        </javac>
+    </target>
+
+    <!-- ================================= 
+      target: test
+      run the unit test
+     ================================= -->    
+    <target name="junit-test" depends="junit-init, junit-compile-test">
+        <junit fork="yes" printsummary="on" maxmemory="512m" >
+			<jvmarg value="-XX:-UseSplitVerifier"/>
+            <sysproperty key="net.sourceforge.cobertura.datafile"
+                file="${instrument-file}" />
+
+            <classpath location="${instrumented-dir}" />
+            <classpath refid="cobertura.classpath" />
+                   
+            <formatter type="xml" />
+            <batchtest todir="${junit-xml-dir}">
+                <fileset dir="${out-dir}">
+                    <!-- <include name="**/*Test*.class" /> -->
+					<include name="**/*Test*.class" />
+                    <exclude name="**/*$*.class" />
+                </fileset>
+            </batchtest>
+        </junit>
+        <junitreport todir="${junit-xml-dir}">
+            <fileset dir="${junit-xml-dir}">
+                <include name="TEST-*.xml" />
+            </fileset>
+            <report format="frames" todir="${junit-html-dir}" />
+        </junitreport>
+    </target>
+    
+    <!-- =================================================================== -->
+    <!--                      Code Coverage Targets                          -->
+    <!-- =================================================================== -->
+	<target name="cobertura-clean">
+        <delete quiet="true" includeEmptyDirs="true">
+            <fileset dir="${report-dir}">
+                <exclude name=".cvsignore" />
+                <exclude name="CVS" />
+            </fileset>
+            <fileset dir="${out-dir}">
+                <exclude name=".cvsignore" />
+                <exclude name="CVS" />
+            </fileset>
+        </delete>
+    </target>
+	
+    <!-- - - - - - - - - - - - - - - - - - 
+      target: init
+      initialize the build env. for code coverage                      
+    - - - - - - - - - - - - - - - - - -->    
+    <target name="cobertura-init" description="initialize the build env."  depends="cobertura-clean">
+        <!-- create the output folder --> 
+		<mkdir dir="${out-dir}" />
+        <mkdir dir="${report-dir}" />
+        <copy todir="${out-dir}">
+            <fileset dir="${src-dir}" includes="**/*.png" />
+            <fileset dir="${src-dir}" includes="**/*.properties" />
+        </copy>
+        <!-- create the output folder -->  
+        <mkdir dir="${instrumented-dir}" />
+        <mkdir dir="${cobertura-dir}" />
+        <mkdir dir="${cobertura-xml-dir}" />
+        <mkdir dir="${cobertura-html-dir}" />
+    </target>
+
+    <!-- ================================= 
+      target: instrument
+      Instrument into the class files, but
+      exclude test classes
+     ================================= -->     
+    <target name="cobertura-instrument" depends="cobertura-init" description="instrument into the class files">
+        <!--
+          Instrument the application classes, writing the
+          instrumented classes into ${instrumented.dir}.
+        -->
+        <cobertura-instrument todir="${instrumented-dir}" datafile="${instrument-file}">
+            <!--
+                The following line causes instrument to ignore any
+                source line containing a reference to log4j, for the
+                purposes of coverage reporting.
+            -->
+            <ignore regex="org.apache.log4j.*" />
+            <fileset dir="${out-dir}">
+                <!-- 
+                  Instrument all the application classes, but
+                  don't instrument the test classes.
+                -->
+                <include name="**/*.class" />
+                <exclude name="**/test/hk/ust/cse/**/*.class" />
+            </fileset>
+        </cobertura-instrument>
+    </target>        
+    
+    <!-- ================================= 
+      target: coverage-check
+      check the code coverage by given rates.
+     ================================= -->  
+    <target name="cobertura-coverage-check" description="check the code coverage by given rates">
+      <cobertura-check branchrate="34" totallinerate="100" />
+    </target>
+    
+    <!-- ================================= 
+      target: coverage-report-xml
+      generate code coverage report by xml format
+     ================================= -->      
+    <target name="cobertura-coverage-report-xml" description="generate xml report">
+      <!-- Generate an XML file containing the coverage data using the "srcdir" attribute. -->
+      <cobertura-report srcdir="${src-dir}" destdir="${cobertura-xml-dir}" format="xml" datafile="${instrument-file}"/>
+    </target>
+    
+    <!-- ================================= 
+      target: coverage-report-html
+      generate code coverage report by html format
+     ================================= -->    
+    <target name="cobertura-coverage-report-html">
+    <!--
+        Generate a series of HTML files containing the coverage
+        data in a user-readable form using nested source filesets.
+    -->
+      <cobertura-report destdir="${cobertura-html-dir}" datafile="${instrument-file}">
+        <fileset dir="${src-dir}">
+          <include name="**/*.java"/>
+        </fileset>
+      </cobertura-report>
+    </target>
+	
+    <target name="cobertura-coverage" depends="cobertura-init, compile, junit-compile-test, cobertura-instrument, junit-test, cobertura-coverage-report-html, cobertura-coverage-report-xml" 
+        description="Compile, instrument ourself, run the tests and generate JUnit and code coverage reports.">
+		<move todir="${report-dir}">                
+			<fileset dir="${report-dir}"/>               
+		</move>
+	</target>
+	
+    <!-- =================================================================== -->
+    <!--                            Zip Tests                                -->
+    <!-- =================================================================== -->
+
+	<target name="cleanzip">
+	    <delete quiet="true" file="test.zip" />
+    </target>
+	
+    <target name="ziptests" depends="cleanzip">
+        <zip destfile="test.zip" basedir="test" />
+    </target>
+   
+    <!-- =================================================================== -->
+    <!--                           Public Targets                            -->
+    <!-- =================================================================== -->
+    
+    
+    <!-- =================================================================== -->
+    <!--                           Global Targets                            -->
+    <!-- =================================================================== -->
+    
+    <target name="all" depends="run-jar" /> 
+    <target name="build" depends="run-jar" /> 
+    <target name="coverage" depends="cobertura-coverage" /> 
+    <target name="zip" depends="ziptests" /> 
+
+</project>

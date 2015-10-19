@@ -1,0 +1,1 @@
+My student ID is 20026141, so according to the requirement the maximum amount of bombs for me should be zero(x = Math.min (3, Math.floor(last digit of yourstudentID/ 2.0))). But I see there are points about bombs so I made it three bombs maximum.

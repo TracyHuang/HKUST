@@ -1,0 +1,5 @@
+All work is built under Windows system and Firefox 11. And it should work well on this setting.
+
+Especially notice that portable firefox does not support this game.
+
+As pointed out by professor's email, I did not use any animation for the monster because firefox does not support it.

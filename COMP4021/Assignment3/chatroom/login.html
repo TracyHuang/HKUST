@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <title>Login Page</title>
+        <link rel="stylesheet" type="text/css" href="style.css" />
+        <script type="text/javascript">
+        //<![CDATA[
+        function clearMessage() {
+            try {
+                var name = window.parent.frames["message"].document.getElementById("username");
+                if (name != "") {
+                    window.parent.frames["message"].location.reload();
+                }
+            } catch (e) { }
+        }
+
+        function checkInput() {
+            var input_field = document.getElementById("name");
+            var input = input_field.getAttribute("value");
+            if (input.length == 0) {
+                alert("Please enter a name!");
+                return false;
+            }
+            var reg = new RegExp("\\W");
+            if (input.match(reg)) {
+                alert("Invalid user name!\nPlease don't use space and the following characters.\n\"\':;<>()[]{}!@#$%^&*-+=");
+                return false;
+            }
+            return true;
+        }
+        //]]>
+        </script>
+    </head>
+    <body onload="clearMessage()">
+        <form method="post" action="login.php" onsubmit="return checkInput();">
+            <table border="0" cellpadding="5" cellspacing="0">
+                <tr>
+                    <td>Please enter your user name:</td>
+                    <td><input class="text" name="name" id="name" type="text" size="20" maxlength="10" /></td>
+                </tr>
+                <tr align="center">
+                    <td colspan="2"><input class="button" type="submit" value="Go!" style="width: 150px" /></td>
+                </tr>
+            </table>
+        </form>
+    </body>
+</html>
